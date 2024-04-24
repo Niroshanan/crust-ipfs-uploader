@@ -1,7 +1,8 @@
 "use client";
 import { useRef } from "react";
-import { getIPFS, handleAdd } from "./helpers/fileUploader";
+import { handleAdd } from "./helpers/fileUploader";
 import { base64ToFile } from "./helpers/base64ToImage";
+import { crustPin } from "./helpers/crustPin";
 
 export default function Home() {
   const inputFile = useRef<HTMLInputElement>(null);
@@ -29,6 +30,17 @@ export default function Home() {
       console.error("No file selected");
     }
   };
+
+  const handlePin = async () => {
+    const cid = document.getElementById("cid") as HTMLInputElement;
+    if (cid) {
+      const cidString = cid.value;
+      const res = await crustPin(cidString);
+      console.log(res);
+    } else {
+      console.error("No CID provided");
+    }
+  };
   return (
     <main>
       <div className="container flex flex-row gap-3 pr-5">
@@ -43,11 +55,8 @@ export default function Home() {
           <button type="submit">Upload</button>
         </form>
         <div id="image">
-          <button
-            onClick={getIPFS}
-          >
-            Download
-          </button>
+          <input type="text" id="cid" name="cid" required />
+          <button onClick={handlePin}>pin </button>
         </div>
       </div>
     </main>

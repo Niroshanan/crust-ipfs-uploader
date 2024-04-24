@@ -1,13 +1,9 @@
 import { create } from "ipfs-http-client";
 import { typeFile } from "../types/types";
-
 import { Keyring } from "@polkadot/keyring";
+import { testPin } from "./pinningService";
 
-const seeds = process.env.NEXT_PUBLIC_SEEDS;
-
-if (!seeds) {
-  throw new Error("NEXT_PUBLIC_SEEDS environment variable is not defined.");
-}
+const seeds = process.env.NEXT_PUBLIC_SEEDS as string;
 
 const keyring = new Keyring();
 const pair = keyring.addFromUri(seeds);
@@ -20,7 +16,7 @@ const authHeader = Buffer.from(`sub-${pair.address}:${sigHex}`).toString(
 
 const ipfsGateway = "https://crustgateway.com";
 const ipfs = create({
-  url: ipfsGateway + "/api/v0/add?pin=true",
+  url: ipfsGateway + "/api/v0/add",
   headers: {
     authorization: "Basic " + authHeader,
   },
@@ -37,9 +33,14 @@ export const handleAdd = async (file: File, imgFile: File) => {
       imgRes.cid.toV0().toString()
     );
     const res = await addDataToIpfs({
-      vc_cid: vcRes.cid.toV0().toString(),
-      img_cid: imgRes.cid.toV0().toString(),
+      name: file.name,
+      description: "This is a test",
+      vc: "ipfs://" + vcRes.cid.toV0().toString(),
+      image: "ipfs://" + imgRes.cid.toV0().toString(),
     });
+    console.log("CID of data", res.cid.toV0().toString());
+    console.log("CID of name", res.size);
+    console.log("CID of data", res);
   } catch (error) {
     console.log(error);
   }
@@ -65,9 +66,4 @@ export const addDataToIpfs = async (data: typeFile) => {
   } else {
     throw new Error("IPFS add failed, please try again.");
   }
-};
-
-export const getIPFS = async () => {
-  const res = ipfs.get("ipfs://QmdRyoskpDAxMxmpuKJVPDDeCGQhtzyFAqrhJZGFN853nb");
-  console.log(res);
 };
